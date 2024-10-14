@@ -1,11 +1,21 @@
 package com.example.roomdbexercises;
 
+import android.app.DatePickerDialog;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
+import java.util.UUID;
 
 public class CrimeDetailActivity extends AppCompatActivity {
 
@@ -13,6 +23,10 @@ public class CrimeDetailActivity extends AppCompatActivity {
     private Button crimeDateButton;
     private CheckBox crimeSolvedCheckBox;
     private Button saveCrimeButton;
+    private CrimeViewModel crimeViewModel;
+
+    private Crime currentCrime;
+    private String selectedDate;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,22 +38,72 @@ public class CrimeDetailActivity extends AppCompatActivity {
         crimeSolvedCheckBox = findViewById(R.id.crime_solved);
         saveCrimeButton = findViewById(R.id.save_crime_button);
 
+        crimeViewModel = new ViewModelProvider(this).get(CrimeViewModel.class);
+
         crimeDateButton.setOnClickListener(v -> {
-            // انتخاب تاریخ (می‌توانید از DatePicker استفاده کنید)
+            // انتخاب تاریخ با استفاده از DatePickerDialog
             showDatePicker();
         });
 
         saveCrimeButton.setOnClickListener(v -> {
-            // ذخیره‌سازی جزئیات جرم (در اینجا باید داده‌ها در پایگاه داده ذخیره شوند)
+            // ذخیره‌سازی جزئیات جرم در پایگاه داده
             saveCrime();
         });
     }
 
     private void showDatePicker() {
-        // انتخاب تاریخ با استفاده از DatePickerDialog
+        // گرفتن تاریخ فعلی از Calendar
+        final Calendar calendar = Calendar.getInstance();
+        int year = calendar.get(Calendar.YEAR);
+        int month = calendar.get(Calendar.MONTH);
+        int day = calendar.get(Calendar.DAY_OF_MONTH);
+
+        // ایجاد و نمایش DatePickerDialog
+        DatePickerDialog datePickerDialog = new DatePickerDialog(
+                this,
+                (view, selectedYear, selectedMonth, selectedDay) -> {
+                    // وقتی کاربر یک تاریخ انتخاب می‌کند
+                    selectedDate = selectedDay + "/" + (selectedMonth + 1) + "/" + selectedYear;
+                    crimeDateButton.setText(selectedDate); // نمایش تاریخ انتخاب شده در دکمه
+                },
+                year, month, day
+        );
+
+        // نمایش DatePickerDialog
+        datePickerDialog.show();
     }
 
     private void saveCrime() {
-        // ذخیره‌سازی جرم در پایگاه داده
+        // گرفتن داده‌ها از فیلدهای ورودی
+        String title = crimeTitleEditText.getText().toString().trim();
+        boolean isSolved = crimeSolvedCheckBox.isChecked();
+
+        if (title.isEmpty() || selectedDate == null) {
+            Toast.makeText(this, "لطفاً همه فیلدها را پر کنید", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // تبدیل رشته‌ی تاریخ به Date
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+        Date date = null;
+        try {
+            date = dateFormat.parse(selectedDate);
+        } catch (ParseException e) {
+            e.printStackTrace();
+            Toast.makeText(this, "خطا در فرمت تاریخ", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // ایجاد یک جرم جدید و پر کردن داده‌های آن
+        currentCrime = new Crime(UUID.randomUUID(), title, date, isSolved);
+
+        // ذخیره جرم در پایگاه داده از طریق ViewModel
+        crimeViewModel.insertCrime(currentCrime);
+
+        // نمایش پیام موفقیت‌آمیز
+        Toast.makeText(this, "جرم ذخیره شد", Toast.LENGTH_SHORT).show();
+
+        // بستن اکتیویتی پس از ذخیره
+        finish();
     }
 }
