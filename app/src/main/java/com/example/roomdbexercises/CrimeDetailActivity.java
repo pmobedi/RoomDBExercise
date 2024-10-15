@@ -2,6 +2,9 @@ package com.example.roomdbexercises;
 
 import android.app.DatePickerDialog;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -49,6 +52,28 @@ public class CrimeDetailActivity extends AppCompatActivity {
             // ذخیره‌سازی جزئیات جرم در پایگاه داده
             saveCrime();
         });
+    }
+    // این متد منو را ایجاد می‌کند
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.crime_menu, menu);
+        return true;
+    }
+
+    // این متد مدیریت کلیک روی آیتم‌های منو را انجام می‌دهد
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if (id == R.id.menu_item_edit_crime) {
+            editCrime();
+            return true;
+        } else if (id == R.id.menu_item_delete_crime) {
+            deleteCrime();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     private void showDatePicker() {
@@ -105,5 +130,17 @@ public class CrimeDetailActivity extends AppCompatActivity {
 
         // بستن اکتیویتی پس از ذخیره
         finish();
+    }
+
+    private void editCrime() {
+        // پیاده‌سازی ویرایش جرم
+        Toast.makeText(this, "ویرایش جرم", Toast.LENGTH_SHORT).show();
+        // می‌توانید منطق ویرایش را در اینجا پیاده‌سازی کنید
+    }
+
+    private void deleteCrime() {
+        // پیاده‌سازی حذف جرم
+        Toast.makeText(this, "جرم حذف شد", Toast.LENGTH_SHORT).show();
+        // می‌توانید منطق حذف را در اینجا پیاده‌سازی کنید
     }
 }

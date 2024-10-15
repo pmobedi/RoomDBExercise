@@ -15,7 +15,7 @@ public class CrimeListActivity extends AppCompatActivity {
     private RecyclerView crimeRecyclerView;
     private CrimeAdapter crimeAdapter;
     private CrimeRepository crimeRepository;
-
+    private List<Crime> crimes;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -26,7 +26,7 @@ public class CrimeListActivity extends AppCompatActivity {
 
         crimeRepository = new CrimeRepository(getApplication());
         crimeRepository.getAllCrimes().observe(this, crimes -> {
-            crimeAdapter = new CrimeAdapter(crimes);
+            crimeAdapter = new CrimeAdapter(crimes, this, getApplication());
             crimeRecyclerView.setAdapter(crimeAdapter);
         });
 
