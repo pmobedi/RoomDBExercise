@@ -2,9 +2,6 @@ package com.example.roomdbexercises;
 
 import android.app.DatePickerDialog;
 import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -30,6 +27,7 @@ public class CrimeDetailActivity extends AppCompatActivity {
 
     private Crime currentCrime;
     private String selectedDate;
+    private UUID crimeId; // برای نگهداری CRIME_ID
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +41,13 @@ public class CrimeDetailActivity extends AppCompatActivity {
 
         crimeViewModel = new ViewModelProvider(this).get(CrimeViewModel.class);
 
+        // دریافت CRIME_ID از Intent
+        String crimeIdString = getIntent().getStringExtra("CRIME_ID");
+        if (crimeIdString != null) {
+            crimeId = UUID.fromString(crimeIdString);
+            loadCrimeDetails(crimeId); // بارگذاری جزئیات جرم
+        }
+
         crimeDateButton.setOnClickListener(v -> {
             // انتخاب تاریخ با استفاده از DatePickerDialog
             showDatePicker();
@@ -53,27 +58,21 @@ public class CrimeDetailActivity extends AppCompatActivity {
             saveCrime();
         });
     }
-    // این متد منو را ایجاد می‌کند
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.crime_menu, menu);
-        return true;
-    }
 
-    // این متد مدیریت کلیک روی آیتم‌های منو را انجام می‌دهد
+    private void loadCrimeDetails(UUID crimeId) {
+        // بارگذاری جزئیات جرم با استفاده از ViewModel
+        crimeViewModel.getCrime(crimeId).observe(this, crime -> {
+            if (crime != null) {
+                // به‌روزرسانی UI با جزئیات جرم
+                crimeTitleEditText.setText(crime.getTitle());
+                crimeSolvedCheckBox.setChecked(crime.isSolved());
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        if (id == R.id.menu_item_edit_crime) {
-            editCrime();
-            return true;
-        } else if (id == R.id.menu_item_delete_crime) {
-            deleteCrime();
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
+                // تبدیل تاریخ به فرمت دلخواه و نمایش در دکمه
+                SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+                selectedDate = dateFormat.format(crime.getDate());
+                crimeDateButton.setText(selectedDate);
+            }
+        });
     }
 
     private void showDatePicker() {
@@ -119,28 +118,18 @@ public class CrimeDetailActivity extends AppCompatActivity {
             return;
         }
 
-        // ایجاد یک جرم جدید و پر کردن داده‌های آن
-        currentCrime = new Crime(UUID.randomUUID(), title, date, isSolved);
-
-        // ذخیره جرم در پایگاه داده از طریق ViewModel
-        crimeViewModel.insertCrime(currentCrime);
-
-        // نمایش پیام موفقیت‌آمیز
-        Toast.makeText(this, "جرم ذخیره شد", Toast.LENGTH_SHORT).show();
+        // ایجاد یا به‌روزرسانی جرم
+        if (crimeId != null) {
+            currentCrime = new Crime(crimeId, title, date, isSolved);
+            crimeViewModel.updateCrime(currentCrime); // به‌روزرسانی جرم در پایگاه داده
+            Toast.makeText(this, "جرم به‌روزرسانی شد", Toast.LENGTH_SHORT).show();
+        } else {
+            currentCrime = new Crime(UUID.randomUUID(), title, date, isSolved);
+            crimeViewModel.insertCrime(currentCrime); // ذخیره جرم جدید در پایگاه داده
+            Toast.makeText(this, "جرم ذخیره شد", Toast.LENGTH_SHORT).show();
+        }
 
         // بستن اکتیویتی پس از ذخیره
         finish();
-    }
-
-    private void editCrime() {
-        // پیاده‌سازی ویرایش جرم
-        Toast.makeText(this, "ویرایش جرم", Toast.LENGTH_SHORT).show();
-        // می‌توانید منطق ویرایش را در اینجا پیاده‌سازی کنید
-    }
-
-    private void deleteCrime() {
-        // پیاده‌سازی حذف جرم
-        Toast.makeText(this, "جرم حذف شد", Toast.LENGTH_SHORT).show();
-        // می‌توانید منطق حذف را در اینجا پیاده‌سازی کنید
     }
 }

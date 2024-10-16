@@ -37,4 +37,8 @@ public class CrimeRepository {
     public void deleteCrime(UUID id) {
         executorService.execute(() -> crimeDao.deleteCrime(id));
     }
+    public LiveData<Crime> getCrime(UUID id) {
+        return crimeDao.getCrime(id); // فرض بر این است که crimeDao متدی به نام getCrime وجود دارد
+    }
+
 }

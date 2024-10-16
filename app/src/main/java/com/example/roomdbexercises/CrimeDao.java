@@ -23,4 +23,7 @@ public interface CrimeDao {
 
     @Query("DELETE FROM crime_table WHERE id = :id")
     void deleteCrime(UUID id);
+    @Query("SELECT * FROM crime_table WHERE id = :id")
+    LiveData<Crime> getCrime(UUID id);
+
 }
